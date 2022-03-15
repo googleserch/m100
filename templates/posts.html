@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{%block title%} numbers {%endblock title%}
+
+
+{%block content%}
+<div class="d-flex flex-row justify-content-evenly flex-wrap">
+
+ 
+
+ 
+  
+  {% for c in post %}
+
+  
+  
+
+    <div class="shadow m-1 p-3 mb-2 bg-body rounded" style="width: 18rem;">
+       <div class="card-body">
+          <h2 class="card-text ps-2 mb-5 bg-body rounded shadow pb-1 "> {{c.name | truncatewords:3 | safe}} </h2>
+          <p class="card-text ps-2 mb-2 bg-body rounded shadow pb-1 ">{{c.type}} </p>
+          <p class="card-text ps-2 mb-2 bg-body rounded shadow pb-1 "> {{c.deals}} </p>
+         
+          
+          <h5 class="card-text ps-2 mb-3 bg-body rounded shadow pb-1 "> {{c.location}} </h5>
+          {% for d in or %}
+         
+      
+            {% if d.payment_status == True %}
+                <a  href="tel:{{c.phone_number}}" class="btn   rounded shadow pb-1 btn-primary">Call now</a>
+             {% endif %}
+          {% endfor %}
+        </div>
+    </div>
+    
+    {% endfor %} 
+   
+
+   
+<div style="width:100vw;" class="d-flex mt-4  justify-content-evenly ">
+  <nav aria-label="Page navigation example">
+  <ul class="pagination">
+    {%if post.has_previous %} 
+    <li class="page-item"><a class="page-link shadow m-1  mb-2 bg-body rounded" href="?page={{post.previous_page_number}}">Previous</a></li>
+    {% endif %}
+    <li class="page-item"><a class="page-link shadow m-1  mb-2 bg-body rounded" >{{post.number}}</a></li>
+    {%if post.has_next %}
+    <li class="page-item"><a class="page-link shadow m-1  mb-2 bg-body rounded" href="?page={{post.next_page_number}}">Next</a></li>
+    {% endif %}
+  </ul>
+</nav>
+</div>
+
+
+
+
+
+</div>{%endblock content%}
+
+
+

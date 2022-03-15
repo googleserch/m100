@@ -1,0 +1,228 @@
+import email
+from unicodedata import category
+from django.http import HttpRequest
+from django.shortcuts import render,redirect
+from django.http import HttpResponse
+from divya.settings import RAZARPAY_API_KEY, RAZORPAY_API_SECRET_KEY
+from product.models import post
+from product.models import categories
+from product.models import order
+from product.models import amount
+from django.contrib.auth.models import User
+from django.contrib.auth import login,logout,authenticate
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+import razorpay
+from django.contrib import messages
+
+# Create your views here.
+@login_required
+def homepage(request):
+    if not request.user.is_authenticated:
+        return redirect("/")
+    category=categories.objects.all()[:11]
+    data={
+        'category':category,
+        
+    }
+
+
+    return render(request, 'home.html',data)
+
+@login_required
+def posts(request,url):
+    if not request.user.is_authenticated:
+        return redirect("/")
+    cat=categories.objects.get(url=url)
+    post1=post.objects.filter(category=cat)
+    
+  
+    data={
+     
+        'cat':cat,
+        'post':post1
+       
+    }
+
+    
+    return render(request,'posts.html',data)    
+
+
+def signup(request):
+    if request.method == 'POST':
+        
+       
+        
+        # Get the post parameters
+        username=request.POST['username']
+        email=request.POST['email']
+        fname=request.POST['fname']
+        lname=request.POST['lname']
+        pass1=request.POST['password']
+        pass2=request.POST['password1']
+
+        # check for errorneous input
+        if len(username)<10:
+            messages.error(request, " Your user name must be under 10 characters")
+            return redirect('/signup')
+
+        if not username.isalnum():
+            messages.error(request, " User name should only contain letters and numbers")
+            return redirect('/signup')
+        if (pass1!= pass2):
+             messages.error(request, " Passwords do not match")
+             return redirect('/signup')
+        user1=User.objects.filter(username=username).first()
+
+        if user1:
+            messages.error(request, " username already exist")
+            return redirect('/signup')
+        else:    
+        # Create the user
+            myuser = User.objects.create_user(username, email, pass1)
+            myuser.first_name= fname
+            myuser.last_name= lname
+            myuser.save()
+            messages.success(request, " Your iCoder has been successfully created")
+            return redirect('/')
+
+    else:
+        # return HttpResponse("404 - Not found")
+        pass
+       
+
+   
+    return render(request,'signup.html')  
+
+
+def loginhandle(request):
+    if  request.user.is_authenticated:
+        return redirect("/homepage")
+      
+ 
+    if request.method == 'POST':
+        username1 = request.POST.get("username")
+        password1 = request.POST.get("Password")
+        print(username1,password1)
+        user1=User.objects.filter(username=username1).first()
+
+        if user1:
+
+            user=authenticate(request,username=username1,password=password1)
+        
+            if user is not None:
+            
+                    
+                login(request, user)
+                return redirect("/homepage")
+            else:
+                HttpResponse("failed")
+
+          
+        else:    
+            messages.error(request, " Please enter right creditial")
+            return redirect('/signup')
+            
+            
+    
+    return render(request,'login.html')  
+
+
+
+def handlelogout(request):
+    logout(request)    
+    return redirect('/')
+
+
+razorpay_client  = razorpay.Client(auth=(RAZARPAY_API_KEY, RAZORPAY_API_SECRET_KEY))
+def payment(request):
+    if not request.user.is_authenticated:
+        return redirect("/")
+ 
+    currency = 'INR'
+    amounts = 50000  # Rs. 200
+ 
+    # Create a Razorpay Order
+    razorpay_order = razorpay_client.order.create(dict(amount=amounts,
+                                                       currency=currency,
+                                                       payment_capture='0'))
+    
+    
+   
+        
+    currency="inr"        
+    payment_order_id=razorpay_order['id']
+    callback_url = '/paymenthandler/'
+    context={}
+        
+    context['razorpay_amount'] =amounts
+    context['razorpay_merchant_key']=RAZARPAY_API_KEY
+    context['razorpay_order_id']=payment_order_id
+    context['callback_url']=callback_url
+    context['currency']=currency
+    
+    return render(request,'payment.html',context) 
+   
+      
+@login_required
+@csrf_exempt
+def paymenthandler(request):
+    
+  # only accept POST request.
+    if request.method == "POST":
+        try:
+           
+            # get the required parameters from post request.
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
+            params_dict = {
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            }
+
+            cat12=User.objects.get(username= request.user)
+            pro=True
+            
+            sp=order(order_id=razorpay_order_id,amount=500,payment_status=pro,user=cat12)
+            sp1=sp
+            sp1.user=request.user
+            sp1.save()
+            # verify the payment signature.
+            result = razorpay_client.utility.verify_payment_signature(
+                params_dict)
+            if result is None:
+                amount = 50000  # Rs. 200
+                try:
+ 
+                    # capture the payemt
+                    a=razorpay_client.payment.capture(payment_id, amount)
+                    print(a)
+                    # render success page on successful caputre of payment
+                    return render(request, 'paymentsuccess.html')
+                except:
+ 
+                    # if there is an error while capturing payment.
+                    return render(request, 'paymentfail.html')
+            else:
+ 
+                # if signature verification fails.
+                return render(request, 'paymentfail.html')
+        except:
+ 
+            # if we don't find the required parameters in POST data
+            # return HttpResponseBadRequest()
+            return HttpResponse(request,"paymentfail")
+    else:
+       # if other than POST request is made.
+        # return HttpResponseBadRequest()
+        return HttpResponse(request,"paymentfail")
+   
+
+def paymentsuccess(request):
+    return HttpResponse(request,"paymentsuccess")
+
+def paymentfail(request):
+    return HttpResponse(request,"paymentfail")
+

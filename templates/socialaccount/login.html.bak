@@ -1,0 +1,21 @@
+{% extends "socialaccount/base.html" %}
+{% load i18n %}
+
+{% block content %}
+{% if process == "connect" %}
+<h1>{% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}</h1>
+
+<p>{% blocktrans with provider.name as provider %}You are about to connect a new third party account from {{ provider }}.{% endblocktrans %}</p>
+{% else %}
+
+
+
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <button style="  background-color: #f8f9d2;
+    background-image: linear-gradient(315deg, #f8f9d2 0%, #e8dbfc 74%);" class="d-flex flex-row btn btn-default container shadow bg-body rounded w-50 h-auto  p-3" type="submit"> <img src="https://img.icons8.com/color/48/000000/google-logo.png" width="20" />  {% trans "Signin now with Google" %}</button>
+</form>
+{% endblock %}

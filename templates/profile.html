@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{%block title%} numbers {%endblock title%}
+
+
+{%block content%}
+<div class="d-flex flex-row justify-content-evenly flex-wrap">
+
+ 
+    {%if request.user.is_authenticated%}
+    
+    <div class="shadow m-1 p-3 mb-2 bg-body rounded" style="width: 18rem;">
+    <div class="card-body">
+      <h5 style="color:grey;">welcome </h5>
+    <h2 class="card-text ps-2 mb-2 bg-body rounded shadow pb-1 ">{{user.first_name}}<br>{{user.last_name}} </h2>
+   
+
+   {%endif%}
+ 
+  
+
+  
+   
+    
+     
+          <p class="card-text ps-2 mb-2 bg-body rounded shadow pb-1 ">order id<br> {% for c in tor %} 
+            {% if c.payment_status == True%}{{c.order_id}}<br> {%endif%}{%endfor%} </p>
+          <p class="card-text ps-2 mb-2 bg-body rounded shadow pb-1 "> Start service<br> {% for c in tor %}{% if c.payment_status == True%}{{c.start}}{%endif%} {%endfor%} </p>
+          
+          <p class="card-text ps-2 mb-4 bg-body rounded shadow pb-1 "> End service<br>{% for c in tor %}{% if c.payment_status == True%}{{c.date}}{%endif%} {%endfor%}</p>
+         
+        
+          
+          
+          
+          <h3 class="btn btn-outline-success " ><a style="text-decoration:none; "class=" btn-outline-success " href="{% url 'payment'%}">Payment Now</a></h3>
+          
+         
+      
+  
+        
+        </div>
+    </div>
+
+   
+
+
+
+</div>{%endblock content%}
+
+
+
+

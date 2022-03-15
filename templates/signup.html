@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{%block title%} this is title {%endblock%}
+
+
+{%block content%}
+{%for message in messages%}
+<div class="alert h-1 alert-danger" role="alert">
+  Message: {{message}}
+</div>
+{% endfor %}
+<div class="container  shadow bg-body rounded w-50 h-auto mt-4 p-3 bg-light">
+<form method="post"  class="row g-3">
+    {% csrf_token %}
+    <div class="container">
+    <div class="col-md-6">
+        <label for="inputEmail4" class="form-label">Name</label>
+        <input type="text" class="form-control" required id="fname" name="fname">
+    </div>
+  </div>
+    <div class="container">
+    <div class="col-md-6">
+      <label for="inputEmail4" class="form-label">Email</label>
+      <input type="email" class="form-control" required id="email" name="email">
+    </div>
+  </div>
+    <div class="container">
+      <div class="col-md-6">
+      <label for="inputPassword4" class="form-label">mobile</label>
+      <input type="text" class="form-control" required id="mobile"name="mobile">
+     </div>
+      
+        <div>
+          <p >if you are already signup.   <a   href=" {% url 'login' %} ">Login now</a>
+          </p></div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-success">Sign up</button>
+    </div>
+</div>
+  </form>
+
+</div>
+
+
+{%endblock%}
